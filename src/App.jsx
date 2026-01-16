@@ -297,7 +297,7 @@ export default function StudioBookApp() {
             <div className="absolute inset-8 rounded-full border-4 border-transparent border-t-pink-500 animate-spin" />
           </div>
           <h2 className="text-2xl font-light text-white tracking-[0.3em] uppercase animate-pulse">
-            SMU Studios
+            Digital Learning <Suite></Suite>
           </h2>
         </div>
       </div>
@@ -320,7 +320,7 @@ export default function StudioBookApp() {
               </div>
             </div>
             <div className="text-left">
-              <h1 className="text-white font-bold tracking-wide">SMU Studios</h1>
+              <h1 className="text-white font-bold tracking-wide">Virtual Classrooms & One Button Studios</h1>
               <p className="text-white/40 text-xs tracking-widest uppercase">Media Center</p>
             </div>
           </button>
