@@ -297,7 +297,7 @@ export default function StudioBookApp() {
             <div className="absolute inset-8 rounded-full border-4 border-transparent border-t-pink-500 animate-spin" />
           </div>
           <h2 className="text-2xl font-light text-white tracking-[0.3em] uppercase animate-pulse">
-            Digital Learning <Suite></Suite>
+            SMU Studios
           </h2>
         </div>
       </div>
