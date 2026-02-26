@@ -253,7 +253,7 @@ export default function StudioBookApp() {
       .then((module) => {
         module.createChat({
           webhookUrl: 'https://coxstudio360.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
-          mode: 'window',
+          mode: 'floating',
           showWelcomeScreen: false,
           i18n: {
             en: {
