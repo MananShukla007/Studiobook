@@ -1391,34 +1391,6 @@ export default function StudioBookApp() {
           filter: invert(1);
           cursor: pointer;
         }
-          /* Chat Position Fix */
-.n8n-chat-container {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  left: auto !important;
-  z-index: 9999 !important;
-}
-
-/* Glass Theme */
-.n8n-chat-window {
-  background: rgba(15, 15, 25, 0.95) !important;
-  backdrop-filter: blur(20px);
-  border-radius: 20px !important;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-/* Header */
-.n8n-chat-header {
-  background: linear-gradient(135deg, #7c3aed, #06b6d4) !important;
-  color: white !important;
-}
-
-/* Floating Button */
-.n8n-chat-button {
-  background: linear-gradient(135deg, #7c3aed, #06b6d4) !important;
-  box-shadow: 0 10px 30px rgba(124,58,237,0.4);
-}
       `}</style>
     </div>
   );
