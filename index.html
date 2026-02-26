@@ -8,35 +8,28 @@
     <meta name="theme-color" content="#0a0a0f" />
     <title>StudioBook | University Media Center</title>
     
-    <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- n8n Chat Widget CSS -->
     <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     
-    <!-- n8n Chat Widget -->
-    <script src="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.umd.js"></script>
-    <script>
-      window.addEventListener('load', function() {
-        if (window.n8nChat) {
-          window.n8nChat.createChat({
-            webhookUrl: 'https://coxstudio360.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
-            mode: 'window',
-            showWelcomeScreen: false,
-            i18n: {
-              en: {
-                title: 'StudioBook Help',
-                subtitle: 'We typically respond right away',
-                inputPlaceholder: 'Type your question...',
-              }
-            }
-          });
+    <script type="module">
+      import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+      createChat({
+        webhookUrl: 'https://coxstudio360.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
+        mode: 'window',
+        showWelcomeScreen: false,
+        i18n: {
+          en: {
+            title: 'StudioBook Help',
+            subtitle: 'We typically respond right away',
+            inputPlaceholder: 'Type your question...',
+          }
         }
       });
     </script>
