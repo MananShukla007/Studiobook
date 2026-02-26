@@ -164,19 +164,18 @@ export default function StudioBookApp() {
   useEffect(() => { setTimeout(() => setIsLoading(false), 1500); }, []);
 
   // n8n Chat Widget
-  useEffect(() => {
-    // Add CSS
-    const link = document.createElement('link');
-    link.href = 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
+// n8n Chat Widget
+useEffect(() => {
+  // Add CSS
+  const link = document.createElement('link');
+  link.href = 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css';
+  link.rel = 'stylesheet';
+  document.head.appendChild(link);
 
-    // Add Script
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.textContent = `
-      import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
-      createChat({
+  // Load chat widget
+  import('https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js')
+    .then((module) => {
+      module.createChat({
         webhookUrl: 'https://coxstudio360.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
         mode: 'window',
         showWelcomeScreen: false,
@@ -188,14 +187,13 @@ export default function StudioBookApp() {
           }
         }
       });
-    `;
-    document.body.appendChild(script);
+    })
+    .catch((err) => console.error('Chat widget error:', err));
 
-    return () => {
-      if (link.parentNode) link.parentNode.removeChild(link);
-      if (script.parentNode) script.parentNode.removeChild(script);
-    };
-  }, []);
+  return () => {
+    if (link.parentNode) link.parentNode.removeChild(link);
+  };
+}, []);
 
   const isSlotBooked = (roomId, date, time) => bookings.some(b => b.roomId === roomId && b.date === date && b.time === time && b.status !== 'rejected');
   const isSlotBlocked = (roomId, date, time) => blockedSlots.some(b => b.roomId === roomId && b.date === date && b.time === time);
