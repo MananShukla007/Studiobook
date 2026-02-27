@@ -233,12 +233,24 @@ export default function StudioBookApp() {
   const [blockDate, setBlockDate] = useState(new Date().toISOString().split('T')[0]);
   const [blockRoom, setBlockRoom] = useState(1);
   const [blockTime, setBlockTime] = useState('09:00');
+  
+  const passwordInputRef = useRef(null);
 
   // Loading effect - only runs once
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Focus password input when modal opens
+  useEffect(() => {
+    if (showAdminLogin && passwordInputRef.current) {
+      // Small delay to ensure modal is rendered
+      setTimeout(() => {
+        passwordInputRef.current?.focus();
+      }, 100);
+    }
+  }, [showAdminLogin]);
 
   // n8n Chat Widget - loads once after component mounts
   useEffect(() => {
@@ -307,7 +319,7 @@ export default function StudioBookApp() {
     
     setTimeout(() => {
       setShowSuccess(false);
-      setCurrentScreen('bookings');
+      setCurrentScreen('home');
       setSelectedTime(null);
       setFormName('');
       setFormEmail('');
@@ -342,6 +354,16 @@ export default function StudioBookApp() {
       setAdminPassword('');
     } else {
       alert('Incorrect password');
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setAdminPassword(e.target.value);
+  };
+
+  const handlePasswordKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleAdminLogin();
     }
   };
 
@@ -386,32 +408,15 @@ export default function StudioBookApp() {
       <ParticleField />
       <GradientOrbs />
       
-      {/* Navigation */}
+      {/* Navigation - Centered */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-        <GlassCard hover={false} className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between px-6 py-3">
-            <button 
-              onClick={() => setCurrentScreen('home')}
-              className="flex items-center gap-3 group"
-            >
-              <div className="relative w-10 h-10">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl rotate-6 group-hover:rotate-12 transition-transform" />
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-cyan-600 rounded-xl flex items-center justify-center">
-                  <span className="text-xl">🎙️</span>
-                </div>
-              </div>
-              <div className="text-left">
-                <h1 className="text-white font-bold tracking-wide">StudioBook</h1>
-                <p className="text-white/40 text-xs tracking-widest uppercase">University Media Center</p>
-              </div>
-            </button>
-            
+        <GlassCard hover={false} className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-center px-6 py-3">
             <div className="flex items-center gap-2">
               {[
                 { id: 'home', icon: '🏠', label: 'Home' },
                 { id: 'rooms', icon: '🚪', label: 'Rooms' },
                 { id: 'calendar', icon: '📅', label: 'Calendar' },
-                { id: 'bookings', icon: '📋', label: 'My Bookings' },
                 ...(isAdmin ? [{ id: 'admin', icon: '⚙️', label: 'Admin' }] : []),
               ].map((item) => (
                 <button
@@ -425,7 +430,7 @@ export default function StudioBookApp() {
                   `}
                 >
                   <span className="mr-2">{item.icon}</span>
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <span>{item.label}</span>
                   {currentScreen === item.id && (
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full" />
                   )}
@@ -452,7 +457,7 @@ export default function StudioBookApp() {
         </GlassCard>
       </nav>
 
-      {/* Admin Login Modal */}
+      {/* Admin Login Modal - Fixed password input */}
       {showAdminLogin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAdminLogin(false)} />
@@ -462,13 +467,13 @@ export default function StudioBookApp() {
               <div>
                 <label className="block text-white/70 text-sm mb-2">Password</label>
                 <input
+                  ref={passwordInputRef}
                   type="password"
                   value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
+                  onChange={handlePasswordChange}
+                  onKeyDown={handlePasswordKeyDown}
                   placeholder="Enter admin password"
                   className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  autoFocus
                 />
               </div>
               <button
@@ -522,13 +527,8 @@ export default function StudioBookApp() {
         {/* HOME SCREEN */}
         {currentScreen === 'home' && (
           <div className="pt-28 px-6 pb-12 max-w-6xl mx-auto">
-            {/* Hero Section */}
+            {/* Hero Section - Removed SMU Media Center badge */}
             <div className="text-center mb-16 relative">
-              <div className="inline-block mb-6">
-                <span className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 text-purple-300 text-sm font-medium">
-                  ✨ University Media Center
-                </span>
-              </div>
               <h1 className="text-5xl sm:text-7xl font-bold mb-6">
                 <span className="bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
                   Book Your
@@ -1024,97 +1024,6 @@ export default function StudioBookApp() {
                 </GlassCard>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* MY BOOKINGS SCREEN */}
-        {currentScreen === 'bookings' && (
-          <div className="pt-28 px-6 pb-12 max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-white mb-4">My Bookings</h1>
-              <p className="text-white/50">Manage your reservations</p>
-            </div>
-
-            {bookings.length === 0 ? (
-              <GlassCard className="p-16 text-center">
-                <div className="text-6xl mb-6">📭</div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Bookings Yet</h3>
-                <p className="text-white/50 mb-6">You haven't made any reservations</p>
-                <button
-                  onClick={() => setCurrentScreen('rooms')}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-xl text-white font-medium hover:shadow-lg transition-all"
-                >
-                  Book a Room
-                </button>
-              </GlassCard>
-            ) : (
-              <div className="space-y-4">
-                {bookings.map((booking) => {
-                  const room = rooms.find(r => r.id === booking.roomId);
-                  const slot = timeSlots.find(s => s.time === booking.time);
-                  const purpose = purposes.find(p => p.value === booking.purpose);
-                  const isPast = new Date(booking.date) < new Date(new Date().toDateString());
-                  
-                  return (
-                    <TiltCard key={booking.id} intensity={5}>
-                      <GlassCard className={`overflow-hidden ${isPast ? 'opacity-60' : ''}`}>
-                        <div className="flex">
-                          <div className={`w-2 bg-gradient-to-b ${room.gradient}`} />
-                          
-                          <div className="flex-1 p-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex gap-4">
-                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${room.gradient} flex items-center justify-center text-3xl shadow-lg`}>
-                                  {room.icon}
-                                </div>
-                                <div>
-                                  <h3 className="text-xl font-bold text-white mb-1">{room.name}</h3>
-                                  <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
-                                    <span>{purpose?.icon} {purpose?.label}</span>
-                                  </div>
-                                  <div className="flex items-center gap-4 text-sm">
-                                    <span className="flex items-center gap-1 text-white/70">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                      </svg>
-                                      {new Date(booking.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                                    </span>
-                                    <span className="flex items-center gap-1 text-white/70">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      </svg>
-                                      {slot?.label}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col items-end gap-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                  booking.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                                  booking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                                  'bg-red-500/20 text-red-400'
-                                }`}>
-                                  {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                                </span>
-                                {!isPast && booking.status !== 'rejected' && (
-                                  <button
-                                    onClick={() => cancelBooking(booking.id)}
-                                    className="px-4 py-2 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors text-sm font-medium"
-                                  >
-                                    Cancel
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </GlassCard>
-                    </TiltCard>
-                  );
-                })}
-              </div>
-            )}
           </div>
         )}
 
