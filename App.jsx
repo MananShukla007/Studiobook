@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// Room data
+// Room data - Updated to match your screenshot (2 studios)
 const rooms = [
   { 
     id: 1, 
-    name: 'Recording Room 1', 
-    subtitle: 'Professional Podcast Suite',
+    name: 'Studio 0362', 
+    subtitle: 'Professional Recording Suite',
     type: 'recording', 
     equipment: ['Shure SM7B Mics', '4K PTZ Camera', 'RODECaster Pro II', 'Acoustic Panels'], 
     capacity: 4, 
@@ -16,7 +16,7 @@ const rooms = [
   },
   { 
     id: 2, 
-    name: 'Recording Room 2', 
+    name: 'Studio 0364', 
     subtitle: 'Video Production Studio',
     type: 'recording', 
     equipment: ['Green Screen Setup', 'LED Panel Lights', 'Teleprompter', '4K Blackmagic'], 
@@ -25,30 +25,6 @@ const rooms = [
     accent: '#06B6D4',
     icon: '🎬',
     image: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800'
-  },
-  { 
-    id: 3, 
-    name: 'Session Room 1', 
-    subtitle: 'Creative Collaboration Space',
-    type: 'session', 
-    equipment: ['85" 4K Display', 'Wireless Presentation', 'Video Conferencing', 'Whiteboard Wall'], 
-    capacity: 6, 
-    gradient: 'from-emerald-500 via-teal-600 to-cyan-700',
-    accent: '#10B981',
-    icon: '💡',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800'
-  },
-  { 
-    id: 4, 
-    name: 'Session Room 2', 
-    subtitle: 'Executive Meeting Room',
-    type: 'session', 
-    equipment: ['Dolby Conference System', 'Interactive Display', 'Premium Seating', 'Climate Control'], 
-    capacity: 8, 
-    gradient: 'from-amber-500 via-orange-600 to-red-600',
-    accent: '#F59E0B',
-    icon: '✨',
-    image: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800'
   },
 ];
 
@@ -73,14 +49,8 @@ const purposes = [
   { value: 'workshop', label: 'Workshop/Training', icon: '🎯' },
 ];
 
-// Initial bookings
-const initialBookings = [
-  { id: 1, roomId: 1, date: '2025-01-16', time: '10:00', name: 'Dr. Sarah Chen', purpose: 'podcast', email: 'schen@university.edu', status: 'approved' },
-  { id: 2, roomId: 1, date: '2025-01-16', time: '14:00', name: 'Prof. James Wilson', purpose: 'lecture', email: 'jwilson@university.edu', status: 'approved' },
-  { id: 3, roomId: 2, date: '2025-01-16', time: '11:00', name: 'Dr. Emily Rodriguez', purpose: 'video', email: 'erodriguez@university.edu', status: 'pending' },
-  { id: 4, roomId: 3, date: '2025-01-16', time: '13:00', name: 'Dr. Michael Park', purpose: 'meeting', email: 'mpark@university.edu', status: 'approved' },
-  { id: 5, roomId: 4, date: '2025-01-16', time: '15:00', name: 'Prof. Lisa Thompson', purpose: 'workshop', email: 'lthompson@university.edu', status: 'approved' },
-];
+// Default bookings (only used if no saved data exists)
+const defaultBookings = [];
 
 // Pre-generate particle data to avoid re-renders
 const particleData = [...Array(50)].map(() => ({
@@ -213,13 +183,32 @@ const StaticCounter = ({ value }) => {
   return <span>{displayValue}</span>;
 };
 
+// Helper function to safely get data from localStorage
+const getStoredData = (key, defaultValue) => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : defaultValue;
+  } catch (error) {
+    console.error(`Error reading ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
+// Helper function to safely save data to localStorage
+const saveToStorage = (key, data) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error(`Error saving ${key} to localStorage:`, error);
+  }
+};
+
 // Main App Component
-export default function StudioBookApp() {
+export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [bookings, setBookings] = useState(initialBookings);
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
   const [formPurpose, setFormPurpose] = useState('podcast');
@@ -228,13 +217,41 @@ export default function StudioBookApp() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [blockedSlots, setBlockedSlots] = useState([]);
   const [adminTab, setAdminTab] = useState('pending');
   const [blockDate, setBlockDate] = useState(new Date().toISOString().split('T')[0]);
   const [blockRoom, setBlockRoom] = useState(1);
   const [blockTime, setBlockTime] = useState('09:00');
   
+  // Initialize state from localStorage
+  const [bookings, setBookings] = useState([]);
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  
   const passwordInputRef = useRef(null);
+
+  // Load data from localStorage on mount
+  useEffect(() => {
+    const storedBookings = getStoredData('studiobook_bookings', defaultBookings);
+    const storedBlockedSlots = getStoredData('studiobook_blocked_slots', []);
+    
+    setBookings(storedBookings);
+    setBlockedSlots(storedBlockedSlots);
+    setIsDataLoaded(true);
+  }, []);
+
+  // Save bookings to localStorage whenever they change
+  useEffect(() => {
+    if (isDataLoaded) {
+      saveToStorage('studiobook_bookings', bookings);
+    }
+  }, [bookings, isDataLoaded]);
+
+  // Save blocked slots to localStorage whenever they change
+  useEffect(() => {
+    if (isDataLoaded) {
+      saveToStorage('studiobook_blocked_slots', blockedSlots);
+    }
+  }, [blockedSlots, isDataLoaded]);
 
   // Loading effect - only runs once
   useEffect(() => {
@@ -250,6 +267,37 @@ export default function StudioBookApp() {
       }, 100);
     }
   }, [showAdminLogin]);
+
+  // n8n Chat Widget - loads once after component mounts
+  useEffect(() => {
+    // Add CSS
+    const link = document.createElement('link');
+    link.href = 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+
+    // Load chat widget using dynamic import
+    import('https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js')
+      .then((module) => {
+        module.createChat({
+          webhookUrl: 'https://coxstudio360.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
+          mode: 'window',
+          showWelcomeScreen: false,
+          i18n: {
+            en: {
+              title: 'StudioBook Help',
+              subtitle: 'We typically respond right away',
+              inputPlaceholder: 'Type your question...',
+            }
+          }
+        });
+      })
+      .catch((err) => console.error('Chat widget error:', err));
+
+    return () => {
+      if (link.parentNode) link.parentNode.removeChild(link);
+    };
+  }, []);
 
   // Helper functions
   const isSlotBooked = (roomId, date, time) => {
@@ -280,9 +328,10 @@ export default function StudioBookApp() {
       email: formEmail,
       purpose: formPurpose,
       status: 'pending',
+      createdAt: new Date().toISOString(),
     };
     
-    setBookings([...bookings, newBooking]);
+    setBookings(prev => [...prev, newBooking]);
     setShowSuccess(true);
     
     setTimeout(() => {
@@ -296,23 +345,24 @@ export default function StudioBookApp() {
   };
 
   const cancelBooking = (id) => {
-    setBookings(bookings.filter(b => b.id !== id));
+    setBookings(prev => prev.filter(b => b.id !== id));
   };
 
   const approveBooking = (id) => {
-    setBookings(bookings.map(b => b.id === id ? { ...b, status: 'approved' } : b));
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'approved' } : b));
   };
 
   const rejectBooking = (id) => {
-    setBookings(bookings.map(b => b.id === id ? { ...b, status: 'rejected' } : b));
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'rejected' } : b));
   };
 
   const handleBlockSlot = () => {
-    setBlockedSlots([...blockedSlots, { roomId: blockRoom, date: blockDate, time: blockTime }]);
+    const newBlock = { roomId: blockRoom, date: blockDate, time: blockTime };
+    setBlockedSlots(prev => [...prev, newBlock]);
   };
 
   const unblockSlot = (roomId, date, time) => {
-    setBlockedSlots(blockedSlots.filter(b => !(b.roomId === roomId && b.date === date && b.time === time)));
+    setBlockedSlots(prev => prev.filter(b => !(b.roomId === roomId && b.date === date && b.time === time)));
   };
 
   const handleAdminLogin = () => {
@@ -366,9 +416,9 @@ export default function StudioBookApp() {
       <ParticleField />
       <GradientOrbs />
       
-      {/* Navigation - Centered, No branding */}
+      {/* Navigation - Centered, No branding, No My Bookings */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-        <GlassCard hover={false} className="max-w-2xl mx-auto">
+        <GlassCard hover={false} className="max-w-xl mx-auto">
           <div className="flex items-center justify-center px-6 py-3">
             <div className="flex items-center gap-2">
               {[
@@ -486,7 +536,7 @@ export default function StudioBookApp() {
         {/* HOME SCREEN - No SMU Media Center badge */}
         {currentScreen === 'home' && (
           <div className="pt-28 px-6 pb-12 max-w-6xl mx-auto">
-            {/* Hero Section */}
+            {/* Hero Section - No badge */}
             <div className="text-center mb-16 relative">
               <h1 className="text-5xl sm:text-7xl font-bold mb-6">
                 <span className="bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
@@ -518,7 +568,7 @@ export default function StudioBookApp() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
               {[
                 { label: 'Available Today', value: totalAvailable, icon: '⚡', color: 'from-green-500 to-emerald-600' },
-                { label: 'Total Rooms', value: 4, icon: '🚪', color: 'from-purple-500 to-indigo-600' },
+                { label: 'Total Studios', value: 2, icon: '🚪', color: 'from-purple-500 to-indigo-600' },
                 { label: 'Total Bookings', value: totalBookings, icon: '📅', color: 'from-cyan-500 to-blue-600' },
                 { label: 'Hours Open', value: 9, icon: '🕐', color: 'from-amber-500 to-orange-600' },
               ].map((stat, i) => (
@@ -608,12 +658,12 @@ export default function StudioBookApp() {
                           key={booking.id}
                           className="p-4 flex items-center gap-4 hover:bg-white/5 transition-colors"
                         >
-                          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${room.gradient} flex flex-col items-center justify-center text-white shadow-lg`}>
+                          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${room?.gradient} flex flex-col items-center justify-center text-white shadow-lg`}>
                             <span className="text-lg font-bold">{slot?.label.split(':')[0]}</span>
                             <span className="text-xs opacity-70">{slot?.label.split(' ')[1]}</span>
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-white font-semibold">{room.name}</h4>
+                            <h4 className="text-white font-semibold">{room?.name}</h4>
                             <p className="text-white/50 text-sm">{booking.name}</p>
                             <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-white/10 text-white/60 text-xs">
                               {purposes.find(p => p.value === booking.purpose)?.label}
@@ -633,9 +683,9 @@ export default function StudioBookApp() {
         {currentScreen === 'rooms' && (
           <div className="pt-28 px-6 pb-12 max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-white mb-4">Choose Your Space</h1>
+              <h1 className="text-4xl font-bold text-white mb-4">Choose Your Studio</h1>
               <p className="text-white/50 max-w-xl mx-auto">
-                Select from our professionally equipped studios and collaboration spaces
+                Select from our professionally equipped recording studios
               </p>
             </div>
 
@@ -727,7 +777,7 @@ export default function StudioBookApp() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Back to rooms
+              Back to studios
             </button>
 
             <TiltCard intensity={5} className="mb-8">
@@ -859,7 +909,7 @@ export default function StudioBookApp() {
                         <h4 className="text-white/50 text-xs uppercase tracking-wider mb-3">Booking Summary</h4>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-white/50">Room</span>
+                            <span className="text-white/50">Studio</span>
                             <span className="text-white font-medium">{selectedRoom.name}</span>
                           </div>
                           <div className="flex justify-between">
@@ -902,7 +952,7 @@ export default function StudioBookApp() {
           <div className="pt-28 px-6 pb-12 max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold text-white mb-4">Weekly Calendar</h1>
-              <p className="text-white/50">Overview of all room bookings</p>
+              <p className="text-white/50">Overview of all studio bookings</p>
             </div>
 
             <GlassCard className="p-4 mb-8">
@@ -991,7 +1041,7 @@ export default function StudioBookApp() {
           <div className="pt-28 px-6 pb-12 max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold text-white mb-4">⚙️ Admin Dashboard</h1>
-              <p className="text-white/50">Manage bookings and room availability</p>
+              <p className="text-white/50">Manage bookings and studio availability</p>
             </div>
 
             <div className="flex gap-2 mb-8">
@@ -1038,14 +1088,14 @@ export default function StudioBookApp() {
                       <GlassCard key={booking.id} className="p-6">
                         <div className="flex items-center justify-between">
                           <div className="flex gap-4">
-                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${room.gradient} flex items-center justify-center text-2xl`}>
-                              {room.icon}
+                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${room?.gradient} flex items-center justify-center text-2xl`}>
+                              {room?.icon}
                             </div>
                             <div>
                               <h3 className="text-white font-semibold">{booking.name}</h3>
                               <p className="text-white/50 text-sm">{booking.email}</p>
                               <div className="flex items-center gap-4 mt-2 text-sm text-white/60">
-                                <span>{room.name}</span>
+                                <span>{room?.name}</span>
                                 <span>{new Date(booking.date).toLocaleDateString()}</span>
                                 <span>{slot?.label}</span>
                                 <span>{purpose?.label}</span>
@@ -1081,7 +1131,7 @@ export default function StudioBookApp() {
                   <thead>
                     <tr className="border-b border-white/10">
                       <th className="text-left p-4 text-white/50 font-medium">Name</th>
-                      <th className="text-left p-4 text-white/50 font-medium">Room</th>
+                      <th className="text-left p-4 text-white/50 font-medium">Studio</th>
                       <th className="text-left p-4 text-white/50 font-medium">Date</th>
                       <th className="text-left p-4 text-white/50 font-medium">Time</th>
                       <th className="text-left p-4 text-white/50 font-medium">Status</th>
@@ -1098,7 +1148,7 @@ export default function StudioBookApp() {
                             <div className="text-white font-medium">{booking.name}</div>
                             <div className="text-white/40 text-sm">{booking.email}</div>
                           </td>
-                          <td className="p-4 text-white">{room.name}</td>
+                          <td className="p-4 text-white">{room?.name}</td>
                           <td className="p-4 text-white/70">{new Date(booking.date).toLocaleDateString()}</td>
                           <td className="p-4 text-white/70">{slot?.label}</td>
                           <td className="p-4">
@@ -1133,7 +1183,7 @@ export default function StudioBookApp() {
                   <h3 className="text-white font-semibold mb-6">Block a Time Slot</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-white/70 text-sm mb-2">Room</label>
+                      <label className="block text-white/70 text-sm mb-2">Studio</label>
                       <select
                         value={blockRoom}
                         onChange={(e) => setBlockRoom(Number(e.target.value))}
