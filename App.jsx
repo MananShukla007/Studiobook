@@ -197,7 +197,7 @@ const StaticCounter = ({ value }) => {
     
     let start = 0;
     const end = value;
-    const increment = end / 62.5; // ~1 second at 60fps
+    const increment = end / 62.5;
     const timer = setInterval(() => {
       start += increment;
       if (start >= end) {
@@ -245,43 +245,11 @@ export default function StudioBookApp() {
   // Focus password input when modal opens
   useEffect(() => {
     if (showAdminLogin && passwordInputRef.current) {
-      // Small delay to ensure modal is rendered
       setTimeout(() => {
         passwordInputRef.current?.focus();
       }, 100);
     }
   }, [showAdminLogin]);
-
-  // n8n Chat Widget - loads once after component mounts
-  useEffect(() => {
-    // Add CSS
-    const link = document.createElement('link');
-    link.href = 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
-    // Load chat widget using dynamic import
-    import('https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js')
-      .then((module) => {
-        module.createChat({
-          webhookUrl: 'https://coxstudio360.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
-          mode: 'window',
-          showWelcomeScreen: false,
-          i18n: {
-            en: {
-              title: 'StudioBook Help',
-              subtitle: 'We typically respond right away',
-              inputPlaceholder: 'Type your question...',
-            }
-          }
-        });
-      })
-      .catch((err) => console.error('Chat widget error:', err));
-
-    return () => {
-      if (link.parentNode) link.parentNode.removeChild(link);
-    };
-  }, []);
 
   // Helper functions
   const isSlotBooked = (roomId, date, time) => {
@@ -357,16 +325,6 @@ export default function StudioBookApp() {
     }
   };
 
-  const handlePasswordChange = (e) => {
-    setAdminPassword(e.target.value);
-  };
-
-  const handlePasswordKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleAdminLogin();
-    }
-  };
-
   // Loading Screen
   if (isLoading) {
     return (
@@ -408,9 +366,9 @@ export default function StudioBookApp() {
       <ParticleField />
       <GradientOrbs />
       
-      {/* Navigation - Centered */}
+      {/* Navigation - Centered, No branding */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-        <GlassCard hover={false} className="max-w-3xl mx-auto">
+        <GlassCard hover={false} className="max-w-2xl mx-auto">
           <div className="flex items-center justify-center px-6 py-3">
             <div className="flex items-center gap-2">
               {[
@@ -470,10 +428,11 @@ export default function StudioBookApp() {
                   ref={passwordInputRef}
                   type="password"
                   value={adminPassword}
-                  onChange={handlePasswordChange}
-                  onKeyDown={handlePasswordKeyDown}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
                   placeholder="Enter admin password"
                   className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                  autoComplete="off"
                 />
               </div>
               <button
@@ -524,10 +483,10 @@ export default function StudioBookApp() {
       )}
 
       <main className="relative z-10">
-        {/* HOME SCREEN */}
+        {/* HOME SCREEN - No SMU Media Center badge */}
         {currentScreen === 'home' && (
           <div className="pt-28 px-6 pb-12 max-w-6xl mx-auto">
-            {/* Hero Section - Removed SMU Media Center badge */}
+            {/* Hero Section */}
             <div className="text-center mb-16 relative">
               <h1 className="text-5xl sm:text-7xl font-bold mb-6">
                 <span className="bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
@@ -535,12 +494,12 @@ export default function StudioBookApp() {
                 </span>
                 <br />
                 <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                  Creative Space
+                  Studio Session
                 </span>
               </h1>
               <p className="text-white/50 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-                Professional recording studios and collaboration spaces designed for 
-                faculty excellence. Reserve your session in seconds.
+                Professional recording studios designed for faculty excellence. Reserve your
+                session in seconds.
               </p>
               <button
                 onClick={() => setCurrentScreen('rooms')}
@@ -577,10 +536,10 @@ export default function StudioBookApp() {
               ))}
             </div>
 
-            {/* Quick Room Status */}
+            {/* Studio Status */}
             <div className="mb-12">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-white">Room Status</h2>
+                <h2 className="text-2xl font-bold text-white">Studio Status</h2>
                 <button 
                   onClick={() => setCurrentScreen('rooms')}
                   className="text-purple-400 hover:text-purple-300 text-sm font-medium flex items-center gap-1"
