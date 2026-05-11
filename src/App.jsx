@@ -280,7 +280,7 @@ export default function App() {
     import('https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js')
       .then((module) => {
         module.createChat({
-          webhookUrl: 'https://coxstudio360.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
+          webhookUrl: 'https://n8flow.app.n8n.cloud/webhook/f406671e-c954-4691-b39a-66c90aa2f103/chat',
           mode: 'window',
           showWelcomeScreen: false,
           i18n: {
