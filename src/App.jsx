@@ -261,6 +261,7 @@ export default function App() {
   const [formEmail,      setFormEmail]      = useState('');
   const [formPurpose,    setFormPurpose]    = useState('podcast');
   const [showSuccess,    setShowSuccess]    = useState(false);
+  const [showLayoutModal, setShowLayoutModal] = useState(false);
   const [isAdmin,        setIsAdmin]        = useState(false);
   const [adminPassword,  setAdminPassword]  = useState('');
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -518,6 +519,120 @@ export default function App() {
         </div>
       )}
 
+      {/* ── Suite Layout Modal ─────────────────────────────────────────────── */}
+      {showLayoutModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="layout-modal-title"
+        >
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setShowLayoutModal(false)}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden">
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h2 id="layout-modal-title" className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Fraunces, Georgia, serif' }}>
+                  Digital Media Studios — Suite Layout
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">Click a room to go straight to booking</p>
+              </div>
+              <button
+                onClick={() => setShowLayoutModal(false)}
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033A0]"
+                aria-label="Close layout"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Image with clickable room overlays */}
+            <div className="relative select-none" style={{ aspectRatio: '1688/932' }}>
+              <img
+                src="/images/studio-suite-layout.png"
+                alt="Digital Media Studios suite layout showing Digital Classroom 0360, Digital Classroom 0361, Digital Studio 0362, Digital Studio 0363, Office/Control 0364, and Lobby"
+                className="w-full h-full object-contain"
+                draggable={false}
+              />
+
+              {/*
+                Bookable room overlay zones — positioned as % of image dimensions (1688×932).
+                Office/Control 0364 and Lobby are context-only (no overlay).
+              */}
+              {[
+                { roomId: 2, name: 'Digital Classroom 0361', left: '0.5', top: '8',  width: '17',  height: '54' },
+                { roomId: 3, name: 'Digital Studio 0362',    left: '18',  top: '8',  width: '18',  height: '54' },
+                { roomId: 4, name: 'Digital Studio 0363',    left: '36',  top: '8',  width: '16',  height: '54' },
+                { roomId: 1, name: 'Digital Classroom 0360', left: '63',  top: '6',  width: '37',  height: '74' },
+              ].map(zone => {
+                const room = rooms.find(r => r.id === zone.roomId);
+                return (
+                  <button
+                    key={zone.roomId}
+                    onClick={() => {
+                      setSelectedRoom(room);
+                      setShowLayoutModal(false);
+                      setCurrentScreen('booking');
+                    }}
+                    aria-label={`Book ${zone.name}`}
+                    className="absolute group focus-visible:outline-none"
+                    style={{
+                      left:   `${zone.left}%`,
+                      top:    `${zone.top}%`,
+                      width:  `${zone.width}%`,
+                      height: `${zone.height}%`,
+                    }}
+                  >
+                    {/* Hover overlay */}
+                    <span
+                      className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-150 flex flex-col items-center justify-center gap-1"
+                      style={{ background: 'rgba(0,51,160,0.18)', border: '2px solid rgba(0,51,160,0.6)' }}
+                      aria-hidden="true"
+                    >
+                      <span className="text-white text-xs font-semibold drop-shadow px-2 text-center leading-tight" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+                        {zone.name}
+                      </span>
+                      <span className="text-white text-xs font-medium drop-shadow" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.7)' }}>
+                        Book →
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Quick-jump room buttons below image */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-medium text-gray-400 mr-1">Book directly:</span>
+                {rooms.map(room => (
+                  <button
+                    key={room.id}
+                    onClick={() => {
+                      setSelectedRoom(room);
+                      setShowLayoutModal(false);
+                      setCurrentScreen('booking');
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700
+                      hover:border-[#0033A0] hover:text-[#0033A0] transition-colors
+                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033A0]"
+                  >
+                    <span aria-hidden="true">{room.icon}</span>
+                    {room.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Main content ────────────────────────────────────────────────────── */}
       <main className="max-w-6xl mx-auto px-6 py-10">
 
@@ -648,14 +763,29 @@ export default function App() {
         {/* ── ROOMS ────────────────────────────────────────────────────────── */}
         {currentScreen === 'rooms' && (
           <div>
-            <div className="mb-8">
-              <h1
-                className="text-3xl font-bold text-gray-900 mb-1"
-                style={{ fontFamily: 'Fraunces, Georgia, serif' }}
+            <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+              <div>
+                <h1
+                  className="text-3xl font-bold text-gray-900 mb-1"
+                  style={{ fontFamily: 'Fraunces, Georgia, serif' }}
+                >
+                  Choose a Studio
+                </h1>
+                <p className="text-gray-500">Select a room to see availability and book a time slot.</p>
+              </div>
+              <button
+                onClick={() => setShowLayoutModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-colors flex-shrink-0
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#0033A0]"
+                style={{ borderColor: SMU_BLUE, color: SMU_BLUE }}
+                onMouseEnter={e => { e.currentTarget.style.background = SMU_BLUE; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = SMU_BLUE; }}
               >
-                Choose a Studio
-              </h1>
-              <p className="text-gray-500">Select a room to see availability and book a time slot.</p>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                Virtual Book
+              </button>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-5">
