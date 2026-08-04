@@ -84,6 +84,130 @@ const Card = ({ children, className = '', onClick }) => (
   </div>
 );
 
+// Custom inline calendar picker — replaces native <input type="date">
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_HEADERS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+const CalendarPicker = ({ value, onChange, minDate }) => {
+  const todayD = new Date(); todayD.setHours(0,0,0,0);
+  const minD   = minDate ? new Date(minDate + 'T00:00:00') : todayD;
+  const selD   = value   ? new Date(value   + 'T00:00:00') : null;
+
+  const [viewYear,  setViewYear]  = useState(selD ? selD.getFullYear()  : todayD.getFullYear());
+  const [viewMonth, setViewMonth] = useState(selD ? selD.getMonth()     : todayD.getMonth());
+
+  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
+  const daysInMonth    = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const canGoPrev = viewYear > minD.getFullYear() || (viewYear === minD.getFullYear() && viewMonth > minD.getMonth());
+
+  const prevMonth = () => {
+    if (!canGoPrev) return;
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
+
+  const selectDay = (day) => {
+    const d = new Date(viewYear, viewMonth, day); d.setHours(0,0,0,0);
+    if (d < minD) return;
+    onChange(`${viewYear}-${String(viewMonth + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`);
+  };
+
+  const isSelected = (day) => selD && selD.getFullYear() === viewYear && selD.getMonth() === viewMonth && selD.getDate() === day;
+  const isToday    = (day) => todayD.getFullYear() === viewYear && todayD.getMonth() === viewMonth && todayD.getDate() === day;
+  const isPast     = (day) => { const d = new Date(viewYear, viewMonth, day); d.setHours(0,0,0,0); return d < minD; };
+
+  // Build cells array: nulls for leading blanks, then day numbers
+  const cells = [...Array(firstDayOfWeek).fill(null), ...Array.from({length: daysInMonth}, (_, i) => i + 1)];
+
+  return (
+    <div className="select-none">
+      {/* Month nav */}
+      <div className="flex items-center justify-between mb-5">
+        <button
+          onClick={prevMonth}
+          disabled={!canGoPrev}
+          aria-label="Previous month"
+          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033A0] ${
+            canGoPrev ? 'hover:bg-gray-100 text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="text-base font-semibold text-gray-900">{MONTHS[viewMonth]} {viewYear}</span>
+        <button
+          onClick={nextMonth}
+          aria-label="Next month"
+          className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-100 text-gray-600 transition-colors
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033A0]"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Day-of-week headers */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAY_HEADERS.map(d => (
+          <div key={d} className="text-center text-xs font-semibold text-gray-400 py-1">{d}</div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7 gap-y-1" role="grid" aria-label={`${MONTHS[viewMonth]} ${viewYear}`}>
+        {cells.map((day, i) => {
+          if (!day) return <div key={`e-${i}`} role="gridcell" aria-hidden="true" />;
+          const past     = isPast(day);
+          const selected = isSelected(day);
+          const today_   = isToday(day);
+          return (
+            <div key={day} role="gridcell">
+              <button
+                onClick={() => selectDay(day)}
+                disabled={past}
+                aria-label={`${MONTHS[viewMonth]} ${day}, ${viewYear}${past ? ' — unavailable' : ''}`}
+                aria-pressed={selected}
+                aria-current={today_ ? 'date' : undefined}
+                className={`w-full aspect-square rounded-xl text-sm font-medium transition-all
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0033A0] focus-visible:ring-offset-1 ${
+                  past
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : selected
+                      ? 'text-white shadow-sm'
+                      : today_
+                        ? 'font-bold ring-2 ring-inset hover:bg-blue-50'
+                        : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                style={
+                  selected ? { background: SMU_BLUE } :
+                  today_ && !selected ? { color: SMU_BLUE, ringColor: SMU_BLUE } : {}
+                }
+              >
+                {day}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Selected date display */}
+      {selD && (
+        <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+          <span className="text-sm font-semibold" style={{ color: SMU_BLUE }}>
+            {selD.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Mini availability row — shown inline so professors see which slots are open at a glance
 const SlotMiniGrid = ({ roomId, date, isSlotBooked, isSlotBlocked }) => (
   <div className="flex gap-1 flex-wrap" role="list" aria-label="Today's slot availability">
@@ -606,14 +730,11 @@ export default function App() {
               {/* Date + time slots */}
               <div className="space-y-5">
                 <Card className="p-5">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Select Date</h3>
-                  <input
-                    type="date"
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4">Select Date</h3>
+                  <CalendarPicker
                     value={selectedDate}
-                    onChange={e => { setSelectedDate(e.target.value); setSelectedTime(null); }}
-                    min={new Date().toISOString().split('T')[0]}
-                    className={inputCls}
-                    aria-label="Select booking date"
+                    onChange={(iso) => { setSelectedDate(iso); setSelectedTime(null); }}
+                    minDate={new Date().toISOString().split('T')[0]}
                   />
                 </Card>
 
