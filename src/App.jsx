@@ -202,7 +202,7 @@ export default function App() {
     setBlockedSlots(prev => prev.filter(b => !(b.roomId === roomId && b.date === date && b.time === time)));
 
   const handleAdminLogin = () => {
-    if (adminPassword === 'smu2025') {
+    if (adminPassword === 'smucox2026!') {
       setIsAdmin(true);
       setShowAdminLogin(false);
       setAdminPassword('');
