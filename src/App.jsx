@@ -8,7 +8,7 @@ const SMU_BLUE = '#0033A0';
 const rooms = [
   {
     id: 1,
-    name: 'Digital Classroom 0360',
+    name: 'Digital Classroom 0366',
     subtitle: 'Interactive Digital Classroom',
     type: 'classroom',
     equipment: ['Interactive Display', 'Document Camera', 'Video Conferencing', 'Wireless Mic'],
@@ -569,7 +569,7 @@ export default function App() {
                 { roomId: 2, name: 'Digital Classroom 0361', left: '0.5', top: '8',  width: '17',  height: '54' },
                 { roomId: 3, name: 'Digital Studio 0362',    left: '18',  top: '8',  width: '18',  height: '54' },
                 { roomId: 4, name: 'Digital Studio 0363',    left: '36',  top: '8',  width: '16',  height: '54' },
-                { roomId: 1, name: 'Digital Classroom 0360', left: '63',  top: '6',  width: '37',  height: '74' },
+                { roomId: 1, name: 'Digital Classroom 0366', left: '63',  top: '6',  width: '37',  height: '74' },
               ].map(zone => {
                 const room = rooms.find(r => r.id === zone.roomId);
                 return (
